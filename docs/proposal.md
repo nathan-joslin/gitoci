@@ -6,13 +6,13 @@
 
 ## Problem Description
 
-Existing tools for transferring and synchronizing git repositories across air-gap boundaries lack an ability to scale, resulting in wasted time copying existing or nonessential data.
+Existing tools for transferring and synchronizing git repositories across air-gap boundaries lack an ability to scale, resulting in wasted time and resources copying existing or nonessential data.
 
 ## Existing and Related Solutions
 
 ### Zarf
 
-Zarf is a tool that facilitates software delivery on systems without an internet connection. They provide support for transferring git repositories across air-gap boundaries. However, using Zarf requires learning a large tool and they do not appear to support incremental updates. Additionally, they do not support git-lfs.
+Zarf is a tool that facilitates software delivery on systems without an internet connection. They provide support for transferring git repositories across air-gap boundaries. However, using Zarf requires learning a large tool, with it's own "ecosystem", and they do not appear to support incremental updates for git repositories. Additionally, they do not support git-lfs.
 
 Sources:
 - [Git-repositories docs](https://docs.zarf.dev/ref/components/#git-repositories)
@@ -59,7 +59,7 @@ No known existing remote helpers for this application exist.
 
 ## Proof-of-Concept
 
-A prototype specification and tooling is provided by the ASCE Data Tool, which has shown promising results. Although it is the closest existing solution, it only solves part of the problem. It is capable of storing git repositories as OCI artifacts, with support for git-lfs files. Like Zarf, it uses git references (tags and branches) or hashes to store a part of or an entire git repository in an OCI registry. However, it does not function as a git remote helper and lacks in some areas of speed and efficiency.
+A prototype specification and tooling is provided by the [ASCE Data Tool](https://github.com/act3-ai/data-tool/tree/main/internal/git), which has shown promising results. Although it is the closest existing solution, it only solves part of the problem. It is capable of storing git repositories as OCI artifacts, with support for git-lfs files. Like Zarf, it uses git references (tags and branches) or hashes to store a part of or an entire git repository in an OCI registry. However, it does not function as a git remote helper and lacks in some areas of speed and efficiency.
 
 ### Pros
 
@@ -105,48 +105,128 @@ The git remote helper will be written in Go for the following reasons:
 
 ### Git Remote Helper Capabilities
 
-Git remote helpers are not required to support all capabilities and features. The following tables outline a plan for the *necessary* capabilities for an MVP. Additional capabilities labeled as "Maybe" or "Likely-No" may be added if time permits.
+Remote helpers are not required to support all capabilities and features. The following tables provide a brief overview of the capabilities *necessary* for a MVP, complimented by more in-depth descriptions for the decision made.
 
-The *Support* column indicates if support for a capability is necessary to solve the problem, a nice-to-have, or no plans to support. Descriptions for each capability may be found in the linked manpage references.
+The background research performed for this proposal led to the connclusion that it is likely only the `connect` capabilities for fetching/pushing packfiles to/from an OCI registry is necessary. As a result, it is likely that other capabilities will be added to increase the efficientcy of `gitoci` as a remote helper. Furthermore, the following capabilities are not required to support `git-lfs`. Given it's relatively widepspread usage of support for `git-lfs` is a requirement of this project.
+
+The *Support* column indicates if supporting capability is necessary to solve the problem, a nice-to-have, or no plans to support.
+
+Legend:
+
+* Yes - Support is necessary for MVP.
+* Maybe - Support may provide value, if time permits.
+* No - Support is not reasonable for project goals.
 
 #### Pushing
 
-See the [Capabilities for Pushing](https://git-scm.com/docs/gitremote-helpers#_capabilities_for_pushing) section of the manpage.
-
 | Capability     | Support     |
 | ------------- | :-------------: |
-| connect | Yes |
-| stateless-connect | No |
-| push | Yes |
-| export | Likely-No |
-| no-private-update | Likely-No |
+| `connect` | Yes |
+| `stateless-connect` | No |
+| `push` | Maybe |
+| `export` | Maybe |
+| `no-private-update` | No |
+
+##### `connect` - Yes
+
+Connect utilizes git's packfile protocol. The proof-of-concept provided by [ASCE Data Tool](https://github.com/act3-ai/data-tool/tree/main/internal/git) uses git bundles, files indended for the "offline" transfer of git objects. Given that bundles are pack-files extended to include git references, support for *pushing* pack-files is key for efficient data transfer.
+
+##### `stateless-connect` - No
+
+Described as experimental and intended for internal use. As such support for this capability is not planned.
+
+##### `push` - Maybe
+
+Used to update remote history and references with local objects. The packfile protocol supported by the `connect` capability is better suited for OCI registries given that many registries limit the sizes of manifests. However, the benefits of packfiles in the context of OCI is limited to reduced metadata and efficient uploads. As such, if a user preferrs faster fetches over pulls, then `push` may provide value given the inclusion of the `fetch` capability.
+
+##### `export` - Maybe
+
+Used to push git objects over a fast-import stream to a remote. This capability may be useful for receving objects from git quickly to build packfiles to be pushed to OCI. More research regarding this capability is needed.
+
+##### `no-private-update` - No
+
+Adds support for disabling private namespace updates. Managing private namespaces is not within the scope of this project. See [git namespaces](https://git-scm.com/docs/gitnamespaces) for more information.
+
+See the [Capabilities for Pushing](https://git-scm.com/docs/gitremote-helpers#_capabilities_for_pushing) section of the manpage for more information.
 
 #### Fetching
 
-See the [Capabilities for Fetching](https://git-scm.com/docs/gitremote-helpers#_capabilities_for_fetching) section of the manpage.
-
 | Capability     | Support     |
 | ------------- | :-------------: |
-| connect | Yes |
-| stateless-connect | No |
-| fetch | Yes |
-| import | Likely-No |
-| check-connectivity | Likely-No |
-| get | Likely-No |
+| `connect` | Yes |
+| `stateless-connect` | No |
+| `fetch` | Maybe |
+| `import` | Maybe |
+| `check-connectivity` | Maybe |
+| `get` | Maybe |
+
+##### `connect` - Yes
+
+Connect utilizes git's packfile protocol. The proof-of-concept provided by [ASCE Data Tool](https://github.com/act3-ai/data-tool/tree/main/internal/git) uses git bundles, files indended for the "offline" transfer of git objects. Given that bundles are pack-files extended to include git references, support for *receiving* pack-files is key for efficient data transfer.
+
+##### `stateless-connect` - No
+
+Described as experimental and intended for internal use. As such support for this capability is not planned.
+
+##### `fetch` - Maybe
+
+Used to update local history and references with remote objects. The packfile protocol supported by the `connect` capability is better suited for OCI registries given that many registries limit the sizes of manifests. However, the benefits of packfiles in the context of OCI is limited to reduced metadata and efficient uploads. As such, if a user preferrs faster fetches over pulls, then `fetch` may provide value given the inclusion of the `push` capability.
+
+##### `import` - Maybe
+
+Used to fetch git objects over a fast-import stream from a remote. This capability may be useful for receving packfiles from OCI and sending objects to git. More research regarding this capability is needed.
+
+##### `check-connectivity` - Maybe
+
+Used to validate that a received packfile, from a clone, is self contained. Although not necessary, this feature may be helpful when cloning from an OCI registry. Alternatively, users can initialize an empty repositry and fetch from the remote - effectively cloning the fetched references.
+
+##### `get` - Maybe
+
+Used to fetch files from a URI. Although not necessary for an MVP, this capability may be helpful to select users.
+
+See the [Capabilities for Fetching](https://git-scm.com/docs/gitremote-helpers#_capabilities_for_fetching) section of the manpage for more information.
 
 #### Miscellaneous
 
-See the [Miscellaneous Capabilities](https://git-scm.com/docs/gitremote-helpers#_miscellaneous_capabilities) section of the manpage.
-
 | Capability     | Support     |
 | ------------- | :-------------: |
-| option | Maybe |
-| refspec | Maybe |
-| bidi-import | Likely-No |
-| export-marks | Likely-No |
-| import-marks | Likely-No |
-| signed-tags | Likely-No |
-| object-format | Yes |
+| `option` | Maybe |
+| `refspec` | Maybe |
+| `bidi-import` | Maybe |
+| `export-marks` | Maybe |
+| `import-marks` | Maybe |
+| `signed-tags` | Maybe |
+| `object-format` | Maybe |
+
+##### `option` - Maybe
+
+Potentially helpful for users who wish to control verbosity and history depth.
+
+##### `refspec` - Maybe
+
+Required for the `export` capability, optional for `import`. Adds support for contrainting references to private namespaces. Not required for an MVP.
+
+##### `bidi-import` - Maybe
+
+Modifies the `import` capability. Although not necessary, this capability could improve efficiency of `import`. The [description provided by git](https://git-scm.com/docs/gitremote-helpers#Documentation/gitremote-helpers.txt-embidi-importem) is better read directly rather than summarized here.
+
+##### `export-marks` - Maybe
+
+Modifies the `export` capability. The output of internal marks table provided by git could be useful for effeciently constructing bundles.
+
+##### `import-marks` - Maybe
+
+More information is needed on this capability. Intuitively, it would seem to be the reverse of `export-marks`. However, the description claims it modifies `export` rather than `import`. More research is needed regarding this capability.
+
+##### `signed-tags` - Maybe
+
+Modifies the `export` capability regarding how signed tags are passed to `git-fast-export`. Not necessary for an MVP, but looking into how this capability, `fast-import`, and `fast-export` handle signed tags is worthwhile.
+
+##### `object-format` - Maybe
+
+Indicates the helper can use explicit hash algorithm extensions when interacting with the remote. Although not necessary for an MVP, this capability may be useful for supporting alternative hash algorithms supported by OCI.
+
+See the [Miscellaneous Capabilities](https://git-scm.com/docs/gitremote-helpers#_miscellaneous_capabilities) section of the manpage for more information.
 
 ## Other Resources
 
