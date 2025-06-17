@@ -15,6 +15,7 @@ Existing tools for transferring and synchronizing git repositories across air-ga
 Zarf is a tool that facilitates software delivery on systems without an internet connection. They provide support for transferring git repositories across air-gap boundaries. However, using Zarf requires learning a large tool, with it's own "ecosystem", and they do not appear to support incremental updates for git repositories. Additionally, they do not support git-lfs.
 
 Sources:
+
 - [Git-repositories docs](https://docs.zarf.dev/ref/components/#git-repositories)
 - [Zarf codebase](https://github.com/zarf-dev/zarf/tree/main/src/internal/git)
 
@@ -23,6 +24,7 @@ Sources:
 Git bundles, native to git, are archives containing references and objects used for the offline transfer of git objects without an active network connection. With "shallow" bundle support, they can be used for incremental updates. For simple use cases git bundles are a great candidate, however their use at scale requires an in-depth knowledge of git and comes with significant organizational penalities for efficient transfers.
 
 Sources:
+
 - [Git bundle manpage](https://git-scm.com/docs/git-bundle)
 
 ## Proposed Solution
@@ -113,9 +115,9 @@ The *Support* column indicates if supporting capability is necessary to solve th
 
 Legend:
 
-* Yes - Support is necessary for MVP.
-* Maybe - Support may provide value, if time permits.
-* No - Support is not reasonable for project goals.
+- Yes - Support is necessary for MVP.
+- Maybe - Support may provide value, if time permits.
+- No - Support is not reasonable for project goals.
 
 #### Pushing
 
@@ -127,11 +129,11 @@ Legend:
 | `export` | Maybe |
 | `no-private-update` | No |
 
-##### `connect` - Yes
+##### `connect` - Yes <!-- markdownlint-disable-line MD024 -->
 
 Connect utilizes git's packfile protocol. The proof-of-concept provided by [ASCE Data Tool](https://github.com/act3-ai/data-tool/tree/main/internal/git) uses git bundles, files indended for the "offline" transfer of git objects. Given that bundles are pack-files extended to include git references, support for *pushing* pack-files is key for efficient data transfer.
 
-##### `stateless-connect` - No
+##### `stateless-connect` - No <!-- markdownlint-disable-line MD024 -->
 
 Described as experimental and intended for internal use. As such support for this capability is not planned.
 
@@ -160,11 +162,11 @@ See the [Capabilities for Pushing](https://git-scm.com/docs/gitremote-helpers#_c
 | `check-connectivity` | Maybe |
 | `get` | Maybe |
 
-##### `connect` - Yes
+##### `connect` - Yes <!-- markdownlint-disable-line MD024 -->
 
 Connect utilizes git's packfile protocol. The proof-of-concept provided by [ASCE Data Tool](https://github.com/act3-ai/data-tool/tree/main/internal/git) uses git bundles, files indended for the "offline" transfer of git objects. Given that bundles are pack-files extended to include git references, support for *receiving* pack-files is key for efficient data transfer.
 
-##### `stateless-connect` - No
+##### `stateless-connect` - No <!-- markdownlint-disable-line MD024 -->
 
 Described as experimental and intended for internal use. As such support for this capability is not planned.
 
