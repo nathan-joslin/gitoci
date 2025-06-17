@@ -1,0 +1,136 @@
+version: "2"
+run:
+  tests: true
+linters:
+  enable:
+    - bodyclose
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    - depguard
+    - dupl
+    - errname
+    - errorlint
+    - exhaustive
+    - gochecknoinits
+    - gocognit
+    - gocritic
+    - godot
+    - importas
+    - misspell
+    - noctx
+    - nolintlint
+    - nosprintfhostport
+    - prealloc
+    - revive
+    - sloglint
+    - thelper
+    - usestdlibvars
+    - usetesting
+    - wrapcheck
+  settings:
+    depguard:
+      rules:
+        nontest:
+          files:
+            - $all
+            - '!$test'
+    exhaustive:
+      default-signifies-exhaustive: true
+    gocognit:
+      min-complexity: 35
+    revive:
+      severity: warning
+      rules:
+        - name: atomic
+        - name: unhandled-error
+          arguments:
+            - strings.Builder.Write
+            - strings.Builder.WriteRune
+            - strings.Builder.WriteString
+            - strings.Builder.WriteByte
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: exported
+        - name: if-return
+        - name: increment-decrement
+        - name: var-naming
+        - name: var-declaration
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: empty-block
+        - name: superfluous-else
+        - name: unreachable-code
+        - name: redefines-builtin-id
+        - name: defer
+        - name: useless-break
+        - name: unexported-naming
+        - name: use-any
+        - name: deep-exit
+        - name: unnecessary-stmt
+        - name: modifies-value-receiver
+        - name: call-to-gc
+        - name: import-shadowing
+    sloglint:
+      context: scope
+      static-msg: true
+      key-naming-case: camel
+    staticcheck:
+      checks:
+        - all
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - .Err(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Info(
+        - .Stat(
+        - .Lstat(
+        - .Close()
+        - .WalkDir(
+        - .ExecuteContext(
+      ignore-sig-regexps:
+        - fmt\..?(P|p)rint.*\(
+      ignore-package-globs:
+        - encoding/*
+  exclusions:
+    generated: lax
+    presets:
+      - common-false-positives
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - godot
+          - wrapcheck
+        path: (.+)_test.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/nathan-joslin/gitoci/*
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
