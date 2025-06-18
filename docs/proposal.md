@@ -143,7 +143,7 @@ Used to update remote history and references with local objects. The packfile pr
 
 ##### `export` - Maybe
 
-Used to push git objects over a fast-import stream to a remote. This capability may be useful for receving objects from git quickly to build packfiles to be pushed to OCI. More research regarding this capability is needed.
+Used to push git objects over a fast-import stream to a remote. This capability may be useful for receving objects from git quickly to build packfiles to be pushed to OCI. More research regarding this capability is needed. Git prefers `push` over `export`.
 
 ##### `no-private-update` - No
 
@@ -206,7 +206,7 @@ Potentially helpful for users who wish to control verbosity and history depth.
 
 ##### `refspec` - Maybe
 
-Required for the `export` capability, optional for `import`. Adds support for contrainting references to private namespaces. Not required for an MVP.
+Required for the `export` capability, optional for `import`. Adds support for constraining references to private namespaces. Not required for an MVP.
 
 ##### `bidi-import` - Maybe
 
