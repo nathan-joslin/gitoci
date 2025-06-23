@@ -32,7 +32,7 @@ From a clone:
 *Disclaimer: subject to internet speeds*:
 
 ```console
-$ time git clone git@github.com:torvalds/linux.git
+$ time git clone
 Cloning into 'linux'...
 remote: Enumerating objects: 10920246, done.
 remote: Counting objects: 100% (62/62), done.
@@ -97,6 +97,15 @@ No known existing remote helpers for this application exist.
 ## Proof-of-Concept
 
 A prototype specification and tooling is provided by the [ASCE Data Tool](https://github.com/act3-ai/data-tool/tree/main/internal/git), which has shown promising results. Although it is the closest existing solution, it only solves part of the problem. It is capable of storing git repositories as OCI artifacts, with support for git-lfs files. Like Zarf, it uses git references (tags and branches) or hashes to store a part of or an entire git repository in an OCI registry. However, it does not function as a git remote helper and lacks in some areas of speed and efficiency.
+
+
+```console
+$ export IMAGE_NAME=torvalids-linux-$(uuidgen)
+
+$ ace-dt git to-oci git@github.com:torvalds/linux.git ttl.sh/${IMAGE_NAME}:1h
+
+$ ace-dt git from-oci ttl.sh${IMAGE_NAME} git@github.com:user-example.git
+```
 
 ### Pros
 
