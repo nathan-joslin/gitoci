@@ -6,13 +6,15 @@
 
 ## Problem Description
 
-Existing tools for transferring and synchronizing git repositories across air-gap boundaries lack an ability to scale, resulting in wasted time and resources copying existing or nonessential data.
+Moving Git repositories into air-gapped environments is done for a variety of reasons: building from source, repository mirroring, and shifting development environments. To achieve this goal, existing tools aim to solve three problems: efficient data transfer, efficient storage, and minimal maintenance burden. However, most of these tools lack the ability to scale and often solve one problem well while falling behind in the other two.
+
+Instead of addressing all three problems directly, this project aims to achieve the main goal by combining the strengths of existing solutions.
 
 ## Existing and Related Solutions
 
 ### Zarf
 
-Zarf is a tool that facilitates software delivery on systems without an internet connection. They provide support for transferring git repositories across air-gap boundaries. However, using Zarf requires learning a large tool, with it's own "ecosystem", and they do not appear to support incremental updates for git repositories. Additionally, they do not support git-lfs.
+Zarf is a tool that facilitates software delivery on systems without an internet connection. They provide support for transferring git repositories across air-gap boundaries. However, using Zarf requires learning a large tool, with its own "ecosystem", and they do not appear to support incremental updates for git repositories. Additionally, they do not support git-lfs.
 
 Sources:
 
@@ -21,15 +23,48 @@ Sources:
 
 ### Git Bundles
 
-Git bundles, native to git, are archives containing references and objects used for the offline transfer of git objects without an active network connection. With "shallow" bundle support, they can be used for incremental updates. For simple use cases git bundles are a great candidate, however their use at scale requires an in-depth knowledge of git and comes with significant organizational penalities for efficient transfers.
+Git bundles, native to git, are archives containing references and objects used for the offline transfer of git objects without an active network connection. With "shallow" bundle support, they can be used for incremental updates. For simple use cases git bundles are a great candidate, however their use at scale (i.e. many repositories or large repositories), requires an in-depth knowledge of git and comes with significant organizational penalities for efficient transfers. Furthermore, resolving the git object a reference is associated with requires obtaining and interfacing with the entire bundle, which is not ideal for an incremental update approach. For this reason, this project aims to shift the proof-of-concept data model provided by ASCE Data Tool to use packfiles rather than bundles. Given that bundles are an extension of packfiles to include data on Git references, changing the data model should provided significant benefits.
+
+For example:
+
+From a clone:
+
+*Disclaimer: subject to internet speeds*:
+
+```console
+$ time git clone
+Cloning into 'linux'...
+remote: Enumerating objects: 10920246, done.
+remote: Counting objects: 100% (62/62), done.
+remote: Compressing objects: 100% (42/42), done.
+remote: Total 10920246 (delta 38), reused 23 (delta 20), pack-reused 10920184 (from 2)
+Receiving objects: 100% (10920246/10920246), 5.33 GiB | 10.02 MiB/s, done.
+Resolving deltas: 100% (8883947/8883947), done.
+Updating files: 100% (89751/89751), done.
+
+real	11m45.203s
+user	14m9.259s
+sys	1m12.536s
+``
+
+With powers of `1024`:
+
+```console
+$ du -s linux
+7689188	linux
+```
 
 Sources:
 
 - [Git bundle manpage](https://git-scm.com/docs/git-bundle)
 
+### ORAS
+
+As a Cloud Native Computing Foundation sandbox project, ORAS has proven their worth within the open source community. They approach OCI artifacts as a "graph copy" problem, providing both a CLI and Go package for efficent distribution of OCI artifacts.
+
 ## Proposed Solution
 
-Define a specification for storing git repositories as OCI artifacts as well as implement a git remote helper to facilitate pushing and fetching from a git repository stored in an OCI registry.
+Define a specification for storing git repositories as OCI artifacts as well as implement a git remote helper to facilitate pushing and fetching from a git repository stored in an OCI registry. By using packfiles, rather than bundles, we can support efficient workflows by quickly resolving the state of local and remote references to perform the minimum mount of data transfer.
 
 Using git with an OCI remote helper looks as follows after installing the utility. While adding and cloning the repository requires specifying the remote helper, subsequent git commands may be used in their typical manner:
 
@@ -62,6 +97,15 @@ No known existing remote helpers for this application exist.
 ## Proof-of-Concept
 
 A prototype specification and tooling is provided by the [ASCE Data Tool](https://github.com/act3-ai/data-tool/tree/main/internal/git), which has shown promising results. Although it is the closest existing solution, it only solves part of the problem. It is capable of storing git repositories as OCI artifacts, with support for git-lfs files. Like Zarf, it uses git references (tags and branches) or hashes to store a part of or an entire git repository in an OCI registry. However, it does not function as a git remote helper and lacks in some areas of speed and efficiency.
+
+
+```console
+$ export IMAGE_NAME=torvalids-linux-$(uuidgen)
+
+$ ace-dt git to-oci git@github.com:torvalds/linux.git ttl.sh/${IMAGE_NAME}:1h
+
+$ ace-dt git from-oci ttl.sh${IMAGE_NAME} git@github.com:user-example.git
+```
 
 ### Pros
 
@@ -109,7 +153,7 @@ The git remote helper will be written in Go for the following reasons:
 
 Remote helpers are not required to support all capabilities and features. The following tables provide a brief overview of the capabilities *necessary* for a MVP, complimented by more in-depth descriptions for the decision made.
 
-The background research performed for this proposal led to the connclusion that it is likely only the `connect` capabilities for fetching/pushing packfiles to/from an OCI registry is necessary. As a result, it is likely that other capabilities will be added to increase the efficientcy of `gitoci` as a remote helper. Furthermore, the following capabilities are not required to support `git-lfs`. Given it's relatively widepspread usage of support for `git-lfs` is a requirement of this project.
+The background research performed for this proposal led to the conclusion that it is likely only the `connect` capabilities for fetching/pushing packfiles to/from an OCI registry is necessary. As a result, it is likely that other capabilities will be added to increase the efficientcy of `gitoci` as a remote helper. Furthermore, the following capabilities are not required to support `git-lfs`. Given it's relatively widepspread usage of support for `git-lfs` is a requirement of this project.
 
 The *Support* column indicates if supporting capability is necessary to solve the problem, a nice-to-have, or no plans to support.
 
