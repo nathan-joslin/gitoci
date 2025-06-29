@@ -1,0 +1,87 @@
+include:
+  - project: devsecops/cicd/pipeline
+    ref: v19.0.35
+    file: main.yml
+
+############################################################
+# Build jobs
+############################################################
+
+build binaries:
+  extends: .go build
+  variables:
+    EXECUTABLE: "gitoci"
+  parallel:
+    matrix:
+      - GOOS:
+        - linux
+        - windows
+        - darwin
+        GOARCH:
+        - amd64
+        - arm64
+
+build fips:
+  extends: .go build fips
+  variables:
+    EXECUTABLE: "gitoci"
+
+generate cli docs:
+  stage: Release
+  needs:
+    - build binaries
+  rules:
+    # Skip release commits
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_TITLE =~ /^chore\(release\):(.*)$/ && $CI_PIPELINE_SOURCE != "schedule"'
+      when: never
+    # Run for all commits to default branch
+    - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $DEP_CHECK != "true"'
+  image: cgr.dev/chainguard/wolfi-base
+  variables:
+    EXECUTABLE: "gitoci"
+  script:
+    - rm -rf docs/cli/
+    # Set HOME to the literal "HOMEDIR" so documentation does not contain the user's home directory
+    - HOME=HOMEDIR NO_COLOR=1 ci-dist/$EXECUTABLE/linux/amd64/bin/$EXECUTABLE gendocs md --only-commands docs/cli/
+    # Clean up go caching stuff placed in the dummy "HOMEDIR" directory
+    - rm -rf HOMEDIR
+  artifacts:
+    paths:
+      - docs/cli/
+
+############################################################
+# Release jobs
+############################################################
+
+# Generates static Go package docs
+generate go package docs:
+  extends: .generate_go_package_docs
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - !reference [.standard_go_rules, rules]
+
+# Deploys package docs and coverage report
+pages:
+  stage: Deploy
+  needs:
+    - generate go package docs
+    - golang unit test
+  rules: !reference ["generate go package docs", rules]
+  image: cgr.dev/chainguard/wolfi-base
+  script:
+    - mkdir public
+    - cp -r ci/docs/pkg public/pkg
+    - cp coverage.html public
+    - echo "Pages accessible through ${CI_PAGES_URL}/${PAGES_PREFIX}"
+    - echo "Go package docs available at ${CI_PAGES_URL}/${PAGES_PREFIX}/pkg"
+    - echo "Go test coverage available at ${CI_PAGES_URL}/${PAGES_PREFIX}/coverage"
+  artifacts:
+    paths:
+      - public
+
+# Release needs gitoci to run
+# "gitoci gendocs" from release.sh
+semantic release:
+  dependencies:
+    - build binaries

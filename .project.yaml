@@ -1,0 +1,41 @@
+# Project configuration file for ACT3 Project Tool
+kind: Project
+apiVersion: project.act3-ace.io/v1beta1
+
+# Project metadata used in Blueprints
+meta:
+    name: gitoci
+    title: Git Remote Helper for OCI Registries
+    description: A Git remote helper for syncing Git repositories in OCI Registries.
+    repository: https://github.com/act3-ai/gitoci.git
+    authors:
+        - name: Nathan Joslin
+          email: nathan.joslin@udri.udayton.edu
+
+# List of Blueprints configured for this project
+blueprints:
+    - ref: https://git.act3-ace.com/devsecops/project-templates/go-cli.git@v2.0.16
+      inputs:
+        envPrefix: GITOCI
+        executableName: gitoci
+        groupName: gitoci.act3-ai.io
+        modulePath: github.com/act3-ai/gitoci
+    - ref: https://github.com/act3-ai/blueprint-release.git@v0.1.7
+      inputs:
+        executableName: gitoci
+        helmChartDir:
+        host: github.com
+        includeDockerPublish: disabled
+        includeGoreleaser: enabled
+        projectType: Go
+
+# Edit configuration interactively:
+#   Edit metadata:         act3-pt edit
+#   Edit CI config:        act3-pt ci edit
+#   Edit Blueprint config: act3-pt blueprint edit
+# Manage Blueprints:
+#   Add Blueprints:  act3-pt blueprint add
+#   Update versions: act3-pt blueprint update
+# Use CI/CD:
+#   Set up CI/CD:  act3-pt ci setup
+#   Run pipelines: act3-pt ci run

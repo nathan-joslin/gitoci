@@ -1,0 +1,14 @@
+
+processor:
+  # RE2 regular expressions describing types that should be excluded from the generated documentation.
+  ignoreTypes: []
+  # RE2 regular expressions describing type fields that should be excluded from the generated documentation.
+  ignoreFields:
+    - "TypeMeta$"
+
+render:
+  # Version of Kubernetes to use when generating links to Kubernetes API documentation.
+  # renovate: depName=k8s.io/kubernetes datasource=go
+  kubernetesVersion: 1.29
+  # Generate better link for known types
+  # knownTypes: []

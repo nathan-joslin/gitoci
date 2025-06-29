@@ -1,0 +1,12 @@
+/bin
+/tool
+/coverage*.*
+/report.*
+/profile.cov
+/integration
+
+## Ignore logfiles
+/log
+
+/.env*
+/ci-dist/

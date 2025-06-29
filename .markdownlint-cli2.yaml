@@ -1,0 +1,12 @@
+config:
+  default: true
+  line-length: false
+
+globs:
+  - "**/*.{md,markdown}"
+
+ignores:
+  - "CHANGELOG.md"
+  - ".gitlab/issue_templates/**"
+  - "docs/cli/**"
+  - "docs/apis/**"
