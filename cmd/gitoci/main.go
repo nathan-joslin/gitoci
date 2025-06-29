@@ -45,9 +45,6 @@ func main() {
 		commands.NewInfoCmd(embeddedDocs),
 	)
 
-	// Restores the original ANSI processing state on Windows
-	var restoreWindowsANSI func() error
-
 	// Store persistent pre run function to avoid overwriting it
 	persistentPreRun := root.PersistentPreRun
 
@@ -58,23 +55,8 @@ func main() {
 		slog.Debug("Software details", slog.Any("info", info))         // Log build info
 		termenv.SetDefaultOutput(termenv.NewOutput(cmd.OutOrStdout())) // Set termenv default output
 
-		// Enable ANSI processing on Windows color output
-		var err error
-		restoreWindowsANSI, err = termenv.EnableVirtualTerminalProcessing(termenv.DefaultOutput())
-		if err != nil {
-			slog.Error("error enabling ANSI processing", slog.String("error", err.Error()))
-		}
-
 		if persistentPreRun != nil {
 			persistentPreRun(cmd, args)
-		}
-	}
-
-	// The post run function restores the terminal
-	root.PersistentPostRun = func(cmd *cobra.Command, args []string) {
-		// Restore original ANSI processing state on Windows
-		if err := restoreWindowsANSI(); err != nil {
-			slog.Error("error restoring ANSI processing state", slog.String("error", err.Error()))
 		}
 	}
 
