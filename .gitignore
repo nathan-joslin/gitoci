@@ -1,2 +1,13 @@
-.envrc.private
-.log
+/bin
+/tool
+/coverage*.*
+/report.*
+/profile.cov
+/integration
+/*.private
+
+## Ignore logfiles
+/log
+
+/.env*
+/ci-dist/
