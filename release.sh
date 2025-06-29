@@ -8,10 +8,10 @@ changelog_path="CHANGELOG.md"
 notes_dir="releases"
 
 
-# Remote Dependencies
-mod_release="github.com/act3-ai/dagger/release@release/v0.1.3"
-mod_gitcliff="github.com/act3-ai/dagger/git-cliff@git-cliff/v0.1.2"
-mod_goreleaser="github.com/act3-ai/dagger/goreleaser@goreleaser/v0.1.2"
+# Dagger module dependencies, see dagger.json for versions
+mod_release="release"
+mod_gitcliff="git-cliff"
+mod_goreleaser="goreleaser"
 
 
 help() {
