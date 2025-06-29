@@ -2,6 +2,16 @@
 kind: Project
 apiVersion: project.act3-ace.io/v1beta1
 
+# Project metadata used in Blueprints
+meta:
+    name: gitoci
+    title: Git Remote Helper for OCI Registries
+    description: A Git remote helper for syncing Git repositories in OCI Registries.
+    repository: https://github.com/act3-ai/gitoci.git
+    authors:
+        - name: Nathan Joslin
+          email: nathan.joslin@udri.udayton.edu
+
 # List of Blueprints configured for this project
 blueprints:
     - ref: https://git.act3-ace.com/devsecops/project-templates/go-cli.git@v2.0.16
