@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 
 	"github.com/muesli/termenv"
 	"github.com/spf13/cobra"
 
-	commands "git.act3-ace.com/ace/go-common/pkg/cmd"
-	"git.act3-ace.com/ace/go-common/pkg/logger"
-	"git.act3-ace.com/ace/go-common/pkg/runner"
-	vv "git.act3-ace.com/ace/go-common/pkg/version"
+	commands "github.com/act3-ai/go-common/pkg/cmd"
+	"github.com/act3-ai/go-common/pkg/logger"
+	"github.com/act3-ai/go-common/pkg/runner"
+	vv "github.com/act3-ai/go-common/pkg/version"
 
 	"github.com/act3-ai/gitoci/cmd/gitoci/cli"
 	"github.com/act3-ai/gitoci/docs"
@@ -26,6 +27,8 @@ func getVersionInfo() vv.Info {
 }
 
 func main() {
+	ctx := context.Background()
+
 	info := getVersionInfo()         // Load the version info from the build
 	root := cli.NewCLI(info.Version) // Create the root command
 	root.SilenceUsage = true         // Silence usage when root is called
@@ -76,7 +79,7 @@ func main() {
 	}
 
 	// Run the root command
-	if err := runner.Run(root, "GITOCI_VERBOSITY"); err != nil {
+	if err := runner.Run(ctx, root, "GITOCI_VERBOSITY"); err != nil {
 		os.Exit(1)
 	}
 }

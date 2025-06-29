@@ -8,8 +8,8 @@ import (
 
 	"github.com/act3-ai/gitoci/internal/actions"
 
-	"git.act3-ace.com/ace/go-common/pkg/cmd"
-	"git.act3-ace.com/ace/go-common/pkg/embedutil"
+	"github.com/act3-ai/go-common/pkg/cmd"
+	"github.com/act3-ai/go-common/pkg/embedutil"
 )
 
 //go:embed quick-start-guide.md

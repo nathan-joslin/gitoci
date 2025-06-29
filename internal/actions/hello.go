@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"git.act3-ace.com/ace/go-common/pkg/logger"
+	"github.com/act3-ai/go-common/pkg/logger"
 )
 
 // Represents the Hello action

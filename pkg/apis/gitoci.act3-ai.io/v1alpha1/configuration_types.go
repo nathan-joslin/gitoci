@@ -11,9 +11,9 @@ import (
 
 	apiutils "github.com/act3-ai/gitoci/pkg/apis/utils"
 
-	"git.act3-ace.com/ace/go-common/pkg/redact"
+	"github.com/act3-ai/go-common/pkg/redact"
 
-	"git.act3-ace.com/ace/go-common/pkg/logger"
+	"github.com/act3-ai/go-common/pkg/logger"
 )
 
 // +kubebuilder:object:root=true

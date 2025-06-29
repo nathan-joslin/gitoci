@@ -7,7 +7,7 @@ import (
 
 	"github.com/act3-ai/gitoci/pkg/apis"
 
-	"git.act3-ace.com/ace/go-common/pkg/genschema"
+	"github.com/act3-ai/go-common/pkg/genschema"
 )
 
 func main() {

@@ -9,7 +9,7 @@ import (
 	"github.com/act3-ai/gitoci/internal/actions"
 	"github.com/act3-ai/gitoci/pkg/apis/gitoci.act3-ai.io/v1alpha1"
 
-	"git.act3-ace.com/ace/go-common/pkg/config"
+	"github.com/act3-ai/go-common/pkg/config"
 )
 
 // NewCLI creates the base gitoci command
