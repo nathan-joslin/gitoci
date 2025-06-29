@@ -9,3 +9,5 @@ ignores:
 # auto generated files
   - "CHANGELOG.md"
   - "releases/**"
+  - "docs/cli/**"
+  - "docs/apis/**"

@@ -1,0 +1,25 @@
+{
+  "name": "gitoci",
+  "engineVersion": "v0.18.12",
+  "sdk": {
+    "source": "go"
+  },
+  "dependencies": [
+    {
+      "name": "git-cliff",
+      "source": "github.com/act3-ai/dagger/git-cliff@git-cliff/v0.1.2",
+      "pin": "86ec5dc4ee1fd4d168d51946bc82aa4110cc8d96"
+    },
+    {
+      "name": "goreleaser",
+      "source": "github.com/act3-ai/dagger/goreleaser@goreleaser/v0.1.2",
+      "pin": "cd6108a6ef86535e4912a8f26fa09bd97209f85c"
+    },
+    {
+      "name": "release",
+      "source": "github.com/act3-ai/dagger/release@release/v0.1.4",
+      "pin": "b2d11e2e2c0557df2209abaa6afee33e505ead0c"
+    }
+  ],
+  "source": ".dagger"
+}

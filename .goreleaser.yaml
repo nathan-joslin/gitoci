@@ -1,0 +1,85 @@
+version: 2
+
+
+
+builds:
+  - id: gitoci
+    binary: git-remote-oci
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.build={{.Version}}
+    env:
+      - CGO_ENABLED=0
+      - GOFIPS140=latest
+    main: ./cmd/gitoci/
+
+archives:
+  - id: gitoci-archives
+    ids:
+      - gitoci
+    formats: ["tar.gz"]
+    builds_info:
+      mode: 755
+    name_template: "git-remote-oci-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    files:
+      - LICENSE
+      - src: "releases/v{{ .Version }}.md"
+        strip_parent: true
+
+release:
+  github:
+    owner: act3-ai
+    name: gitoci
+  ids:
+    - gitoci-archives
+  make_latest: envOrDefault "RELEASE_LATEST" "false" # don't add 'latest' tag by default
+  mode: replace # if there's a need to re-release, don't duplicate the release notes
+  skip_upload: false
+
+checksum:
+  name_template: git-remote-oci-v{{ .Version }}-checksums.txt
+  algorithm: sha256
+  ids:
+    - gitoci-archives
+  disable: false
+
+brews:
+  - name: gitoci
+    ids: [gitoci-archives]
+    commit_author:
+      name: "{{ .Env.RELEASE_AUTHOR }}"
+      email: "{{ .Env.RELEASE_AUTHOR_EMAIL }}"
+    commit_msg_template: |
+      fix(git-remote-oci): updated to {{ .Tag }}
+    homepage: https://github.com/act3-ai/gitoci
+    description: "A CLI tool for packaging, uploading, and downloading data from OCI registries."
+    license: "MIT"
+    skip_upload: auto # don't upload if prerelease
+    test: |
+      system "#{bin}/git-remote-oci version"
+    extra_install: |
+      generate_completions_from_executable(bin/"git-remote-oci", "completion")
+
+      # Generate manpages
+      mkdir "man" do
+        system bin/"git-remote-oci", "gendocs", "man", "."
+        man1.install Dir["*.1"]
+      end
+    directory: Formula
+    repository:
+      owner: act3-ai
+      name: homebrew-tap
+      branch: bump-gitoci-{{ .Tag }}
+      git:
+        url: git@github.com:act3-ai/homebrew-tap.git
+        private_key: "{{ .Env.SSH_PRIVATE_KEY }}" # set in .envrc.private
+      pull_request:
+        enabled: true
+    url_template: "https://github.com/act3-ai/gitoci/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
