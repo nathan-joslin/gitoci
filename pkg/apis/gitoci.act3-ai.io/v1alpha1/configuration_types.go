@@ -152,7 +152,7 @@ func (c Configuration) ToDocumentedYAML(ctx context.Context) ([]byte, error) {
 }
 
 const (
-	commentConfigHead = `gitoci Configuration File
-Stores configuration for gitoci`
+	commentConfigHead = `git-remote-oci Configuration File
+Stores configuration for git-remote-oci`
 	commentConfigFoot = "Comments added by the user will not be preserved in this file"
 )

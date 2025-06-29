@@ -12,7 +12,7 @@ Git Remote Helper for OCI Registries is organized into three layers:
 
 The `cmd` package uses [`cobra`](https://pkg.go.dev/github.com/spf13/cobra) to define the command line interface for Git Remote Helper for OCI Registries.
 
-> [`cmd` Package](./../cmd/gitoci/cmd)
+> [`cmd` Package](./../cmd/git-remote-oci/cmd)
 
 ### `actions` Package
 
@@ -53,7 +53,7 @@ The act3-pt CLI contains a `act3-pt ci release` command that automates this proc
 ### Generate CLI Documentation (automatically done in CI/CD pipeline)
 
 ```bash
-gitoci util gendocs <data output location>
+git-remote-oci util gendocs <data output location>
 ```
 
 Generate markdown documents from command usage descriptions and placed in the specified directory.

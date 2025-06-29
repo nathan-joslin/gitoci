@@ -39,17 +39,17 @@ After Git Remote Helper for OCI Registries is installed, you are ready to config
 ### Create config file
 
 ```bash
-gitoci config --write
+git-remote-oci config --write
 ```
 
-> Read more about the [config command](cli/gitoci/config/index.md)
+> Read more about the [config command](cli/git-remote-oci/config/index.md)
 
 ### Open config file
 
 Open the config file in your default editor by running the config command with the `--open` flag:
 
 ```bash
-gitoci config --open
+git-remote-oci config --open
 ```
 
 > [I can't find my config file](#troubleshooting)
@@ -87,7 +87,7 @@ If you want to start using Git Remote Helper for OCI Registries right away, move
 Run the command:
 
 ```bash
-gitoci config --location
+git-remote-oci config --location
 ```
 >>>
 
@@ -98,7 +98,7 @@ See the [User Guide](user-guide.md) for information about the default location a
 >>>
 Specify a directory to look for your config file by setting the environment variable `GITOCI_CONFIG`.
 
-The `gitoci config --write` command accepts an argument to specify a directory to write the file in: `gitoci config --write <path-to-config-file>`
+The `git-remote-oci config --write` command accepts an argument to specify a directory to write the file in: `git-remote-oci config --write <path-to-config-file>`
 >>>
 
 If troubleshooting is unsuccessful, see the [additional resources](#additional-resources) section below.

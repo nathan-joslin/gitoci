@@ -4,7 +4,7 @@ version: 2
 
 builds:
   - id: gitoci
-    binary: gitoci
+    binary: git-remote-oci
     goos:
       - linux
       - darwin
@@ -27,7 +27,7 @@ archives:
     formats: ["tar.gz"]
     builds_info:
       mode: 755
-    name_template: "gitoci-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    name_template: "git-remote-oci-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     files:
       - LICENSE
       - src: "releases/v{{ .Version }}.md"
@@ -44,7 +44,7 @@ release:
   skip_upload: false
 
 checksum:
-  name_template: gitoci-v{{ .Version }}-checksums.txt
+  name_template: git-remote-oci-v{{ .Version }}-checksums.txt
   algorithm: sha256
   ids:
     - gitoci-archives
@@ -57,19 +57,19 @@ brews:
       name: "{{ .Env.RELEASE_AUTHOR }}"
       email: "{{ .Env.RELEASE_AUTHOR_EMAIL }}"
     commit_msg_template: |
-      fix(gitoci): updated to {{ .Tag }}
+      fix(git-remote-oci): updated to {{ .Tag }}
     homepage: https://github.com/act3-ai/gitoci
     description: "A CLI tool for packaging, uploading, and downloading data from OCI registries."
     license: "MIT"
     skip_upload: auto # don't upload if prerelease
     test: |
-      system "#{bin}/gitoci version"
+      system "#{bin}/git-remote-oci version"
     extra_install: |
-      generate_completions_from_executable(bin/"gitoci", "completion")
+      generate_completions_from_executable(bin/"git-remote-oci", "completion")
 
       # Generate manpages
       mkdir "man" do
-        system bin/"gitoci", "gendocs", "man", "."
+        system bin/"git-remote-oci", "gendocs", "man", "."
         man1.install Dir["*.1"]
       end
     directory: Formula

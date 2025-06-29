@@ -127,7 +127,7 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/nathan-joslin/gitoci/*
+        - github.com/act3-ai/gitoci/*
   exclusions:
     generated: lax
     paths:

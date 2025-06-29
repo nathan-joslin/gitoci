@@ -12,7 +12,7 @@ import (
 	"github.com/act3-ai/go-common/pkg/config"
 )
 
-// NewCLI creates the base gitoci command
+// NewCLI creates the base git-remote-oci command
 func NewCLI(version string) *cobra.Command {
 	// Create Tool action with scheme initialized
 	action := actions.NewTool(version)
@@ -26,7 +26,7 @@ func NewCLI(version string) *cobra.Command {
 
 	// cmd represents the base command when called without any subcommands
 	cmd := &cobra.Command{
-		Use:   "gitoci",
+		Use:   "git-remote-oci",
 		Short: "A Git remote helper for syncing Git repositories in OCI Registries.",
 		Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
