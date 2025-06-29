@@ -8,7 +8,6 @@ builds:
     goos:
       - linux
       - darwin
-      # - windows
     goarch:
       - amd64
       - arm64
@@ -19,7 +18,7 @@ builds:
     env:
       - CGO_ENABLED=0
       - GOFIPS140=latest
-      main: ./cmd/gitoci/
+    main: ./cmd/gitoci/
 
 archives:
   - id: gitoci-archives
@@ -50,3 +49,37 @@ checksum:
   ids:
     - gitoci-archives
   disable: false
+
+brews:
+  - name: gitoci
+    ids: [gitoci-archives]
+    commit_author:
+      name: "{{ .Env.RELEASE_AUTHOR }}"
+      email: "{{ .Env.RELEASE_AUTHOR_EMAIL }}"
+    commit_msg_template: |
+      fix(gitoci): updated to {{ .Tag }}
+    homepage: https://github.com/act3-ai/gitoci
+    description: "A CLI tool for packaging, uploading, and downloading data from OCI registries."
+    license: "MIT"
+    skip_upload: auto # don't upload if prerelease
+    test: |
+      system "#{bin}/gitoci version"
+    extra_install: |
+      generate_completions_from_executable(bin/"gitoci", "completion")
+
+      # Generate manpages
+      mkdir "man" do
+        system bin/"gitoci", "gendocs", "man", "."
+        man1.install Dir["*.1"]
+      end
+    directory: Formula
+    repository:
+      owner: act3-ai
+      name: homebrew-tap
+      branch: bump-gitoci-{{ .Tag }}
+      git:
+        url: git@github.com:act3-ai/homebrew-tap.git
+        private_key: "{{ .Env.SSH_PRIVATE_KEY }}" # set in .envrc.private
+      pull_request:
+        enabled: true
+    url_template: "https://github.com/act3-ai/gitoci/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
