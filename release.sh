@@ -47,10 +47,10 @@ Options:
         Run the release process for a specific semver version, ignoring git-cliff's configured bumping strategy. Alternatively, set \$VERSION.
 
 Required Environment Variables:
-    TODO: Add as desired
     - GITHUB_API_TOKEN     - repo:api access
-    Optional Environment Variables:
-    - RELEASE_LATEST       - tag release as latest
+    - RELEASE_AUTHOR       - username of release author, for homebrew tap
+    - RELEASE_AUTHOR_EMAIL - email of release author, for homebrew tap
+    - SSH_PRIVATE_KEY      - ssh key for homebrew tap
 
 Dependencies:
     - dagger
@@ -178,9 +178,6 @@ prepare() {
     --version="$vVersion" \
     --version-path="$version_path" \
     --changelog-path="$changelog_path" \
-    
-    # if custom notes path, run git-cliff module with bumped version to resolve filename
-    # --notes-path="${notes_dir}/${target_version}.md" \
     export --path="."
 
     vVersion=v$(cat "$version_path") # use file as source of truth
@@ -238,19 +235,11 @@ publish() {
 
     dagger -m="$mod_goreleaser" -s="$silent" --src="." call \
     with-secret-variable --name="GITHUB_API_TOKEN" --secret=env:GITHUB_API_TOKEN \
+    with-secret-variable --name="SSH_PRIVATE_KEY" --secret=env:SSH_PRIVATE_KEY \
     with-env-variable --name="RELEASE_LATEST" --value="$release_latest" \
+    with-env-variable --name="RELEASE_AUTHOR" --value="$RELEASE_AUTHOR" \
+    with-env-variable --name="RELEASE_AUTHOR_EMAIL" --value="$RELEASE_AUTHOR_EMAIL"
     release
-
-    
-    # For resolving extra image tags, see https://daggerverse.dev/mod/github.com/act3-ai/dagger/release#Release.extraTags
-    # extra_tags=$(dagger -m="$mod_release" -s="$silent" --src="."  call release extra-tags --ref=<OCI_REF> --version="$version")
-    # For applying extra image tags, see https://daggerverse.dev/mod/github.com/act3-ai/dagger/release#Release.addTags OR if the docker module is used, provide them directly to --tags
-    
-    # publish image
-    # TODO:
-    # - Docker dagger module - https://daggerverse.dev/mod/github.com/act3-ai/dagger/docker
-    # - Native dagger containers - https://docs.dagger.io/cookbook#perform-a-multi-stage-build
-    # - Or other methods
 
     echo -e "Successfully ran publish stage.\n"
     echo "Release process complete."
