@@ -13,7 +13,7 @@ import (
 	"github.com/act3-ai/go-common/pkg/runner"
 	vv "github.com/act3-ai/go-common/pkg/version"
 
-	"github.com/act3-ai/gitoci/cmd/gitoci/cli"
+	"github.com/act3-ai/gitoci/cmd/git-remote-oci/cli"
 	"github.com/act3-ai/gitoci/docs"
 )
 
