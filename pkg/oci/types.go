@@ -39,7 +39,7 @@ type ConfigGit struct {
 // ConfigLFS is an OCI manifest config, containing information about which commits an LFS file is associated with.
 type ConfigLFS struct {
 	// Refs map Git references to layers containing LFS files.
-	Refs map[string][]string `json:"commits"`
+	Refs map[string][]string `json:"refs"`
 }
 
 // ReferenceInfo holds informations about Git references stored in bundle layers.
