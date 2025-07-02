@@ -32,8 +32,10 @@ type Commit string
 
 // ConfigGit is an OCI manifest config, containing information about a Git repository's references.
 type ConfigGit struct {
-	// Refs map Git references to commit OID and layer digest pairs.
-	Refs map[string]ReferenceInfo `json:"refs"`
+	// Heads map Git head references to commit OID and layer digest pairs.
+	Heads map[string]ReferenceInfo `json:"heads"`
+	// Tags map Git tag references to commit OID and layer digest pairs.
+	Tags map[string]ReferenceInfo `json:"tags"`
 }
 
 // ConfigLFS is an OCI manifest config, containing information about which commits an LFS file is associated with.
