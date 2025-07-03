@@ -2,6 +2,8 @@ package oci
 
 import (
 	"github.com/opencontainers/go-digest"
+
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 // Git OCI artifacts.
@@ -19,22 +21,19 @@ const (
 	AnnotationGitRemoteOCIVersion = "vnd.act3-ai.git-remote-oci.version"
 )
 
-// Commit represents a Git commit object identifier (OID), a SHA-1 hash.
-type Commit string
-
 // ConfigGit is an OCI manifest config, containing information about a Git repository's references.
 type ConfigGit struct {
 	// Heads map Git head references to commit OID and layer digest pairs.
-	Heads map[string]ReferenceInfo `json:"heads"`
+	Heads map[plumbing.ReferenceName]ReferenceInfo `json:"heads"`
 
 	// Tags map Git tag references to commit OID and layer digest pairs.
-	Tags map[string]ReferenceInfo `json:"tags"`
+	Tags map[plumbing.ReferenceName]ReferenceInfo `json:"tags"`
 }
 
 // ReferenceInfo holds informations about Git references stored in bundle layers.
 type ReferenceInfo struct {
 	// Commit pointed to by a reference
-	Commit Commit `json:"commit"`
+	Commit plumbing.Hash `json:"commit"`
 
 	// OCI layer, the packfile containing Commit
 	Layer digest.Digest `json:"layer"`

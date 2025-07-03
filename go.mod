@@ -1,16 +1,19 @@
 module github.com/act3-ai/gitoci
 
-go 1.23
+go 1.23.0
 
 toolchain go1.24.4
 
 require (
 	github.com/act3-ai/go-common v0.0.0-20250519210101-950b1bb97e92
+	github.com/go-git/go-git/v5 v5.16.2
 	github.com/muesli/termenv v0.15.2
 	github.com/spf13/cobra v1.8.1
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/apimachinery v0.31.2
 )
+
+require github.com/pjbgf/sha1cd v0.3.2 // indirect
 
 require (
 	github.com/MakeNowJust/heredoc/v2 v2.0.1 // indirect
@@ -41,11 +44,10 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/term v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/term v0.31.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
