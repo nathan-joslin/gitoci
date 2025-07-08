@@ -42,11 +42,14 @@ func (action *GitOCI) Run(ctx context.Context) error {
 	switch {
 	case err != nil:
 		return fmt.Errorf("reading initial command: %w", err)
+	case cmd.CommandType == comms.CmdEmpty:
+		slog.InfoContext(ctx, "run complete")
+		return nil
 	case cmd.CommandType != comms.CmdCapabilities:
-	default:
 		if err := action.capabilities(); err != nil {
 			return fmt.Errorf("responding to capabilities command: %w", err)
 		}
+	default:
 	}
 
 	// TODO: Next command is 'list', can be read in a batch

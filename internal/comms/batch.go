@@ -20,6 +20,8 @@ var (
 type CommandType = string
 
 const (
+	// not a Git convention, marks end of input
+	CmdEmpty        CommandType = "empty"
 	CmdCapabilities CommandType = "capabilities"
 	// CmdPush                 = "push"
 	// CmdFetch                = "fetch"
@@ -44,7 +46,7 @@ type BatchReader interface {
 	Reader
 
 	// ReadBatch reads lines from Git until an empty line is encountered.
-	ReadBatch() ([]*Command, error)
+	ReadBatch() ([]Command, error)
 }
 
 type BatchWriter interface {
@@ -63,7 +65,7 @@ type BatchWriter interface {
 // Reader reads a single command from Git.
 type Reader interface {
 	// Read reads a single line from Git.
-	Read() (*Command, error)
+	Read() (Command, error)
 }
 
 // Writer is used to Write single lines to Git, completed with a Flush.
@@ -91,38 +93,38 @@ func NewBatcher(in io.Reader, out io.Writer) BatchReadWriter {
 }
 
 // Read parses a single command received by Git.
-func (b *batcher) Read() (*Command, error) {
+func (b *batcher) Read() (Command, error) {
 	ok := b.in.Scan()
 	switch {
 	case !ok && b.in.Err() != nil:
-		return nil, fmt.Errorf("reading single command from Git: %w", b.in.Err())
+		return Command{}, fmt.Errorf("reading single command from Git: %w", b.in.Err())
 	case !ok:
 		// EOF
-		return nil, nil
+		return Command{CommandType: CmdEmpty}, nil
 	default:
 		cmd, err := b.parseCommand(b.in.Text())
 		if err != nil {
-			return nil, fmt.Errorf("parsing Git command: %w", err)
+			return Command{}, fmt.Errorf("parsing Git command: %w", err)
 		}
 		return cmd, nil
 	}
 }
 
-func (b *batcher) parseCommand(line string) (*Command, error) {
+func (b *batcher) parseCommand(line string) (Command, error) {
 	fields := strings.Fields(line)
 	if len(fields) < 1 {
-		return nil, fmt.Errorf("unexpected empty command line received from Git")
+		return Command{}, fmt.Errorf("unexpected empty command line received from Git")
 	}
 
 	cmd := fields[0]
 	switch cmd {
 	case CmdCapabilities:
-		return &Command{
+		return Command{
 			CommandType: CmdCapabilities,
 			Data:        nil,
 		}, nil
 	default:
-		return nil, fmt.Errorf("%w: %s", ErrUnsupportedCommand, cmd)
+		return Command{}, fmt.Errorf("%w: %s", ErrUnsupportedCommand, cmd)
 	}
 }
 
@@ -130,8 +132,8 @@ func (b *batcher) parseCommand(line string) (*Command, error) {
 //
 // TODO: Not a fan of this func signature, we don't really need the pointers,
 // but I'm hesitant to return a third bool to mark completion of reading.
-func (b *batcher) ReadBatch() ([]*Command, error) {
-	result := make([]*Command, 0, 2)
+func (b *batcher) ReadBatch() ([]Command, error) {
+	result := make([]Command, 0, 2)
 	for b.in.Scan() {
 		line := b.in.Text()
 		if line == "" {
