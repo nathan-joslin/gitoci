@@ -6,8 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/act3-ai/gitoci/internal/actions"
-
 	"github.com/act3-ai/go-common/pkg/cmd"
 	"github.com/act3-ai/go-common/pkg/embedutil"
 )
@@ -74,6 +72,6 @@ func Embedded(root *cobra.Command) *embedutil.Documentation {
 var SchemaAssociations = []cmd.SchemaAssociation{
 	{
 		Definition: "gitoci.act3-ai.io.schema.json",
-		FileMatch:  actions.FileMatch,
+		// FileMatch:  actions.FileMatch,
 	},
 }

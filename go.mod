@@ -1,8 +1,6 @@
 module github.com/act3-ai/gitoci
 
-go 1.23.0
-
-toolchain go1.24.4
+go 1.24.4
 
 require (
 	github.com/act3-ai/go-common v0.0.0-20250519210101-950b1bb97e92
@@ -13,7 +11,12 @@ require (
 	k8s.io/apimachinery v0.31.2
 )
 
-require github.com/pjbgf/sha1cd v0.3.2 // indirect
+require (
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/pjbgf/sha1cd v0.3.2 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
+)
 
 require (
 	github.com/MakeNowJust/heredoc/v2 v2.0.1 // indirect
