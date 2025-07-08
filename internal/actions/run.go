@@ -35,10 +35,6 @@ func NewGitOCI(in io.Reader, out io.Writer, gitDir, shortname, address, version 
 	}
 }
 
-// func cleanPrefix(address string) string {
-// 	return strings.TrimPrefix(address, "oci://")
-// }
-
 // Runs the Hello action
 func (action *GitOCI) Run(ctx context.Context) error {
 	// first command is always "capabilities"
@@ -53,21 +49,12 @@ func (action *GitOCI) Run(ctx context.Context) error {
 		}
 	}
 
+	// TODO: Next command is 'list', can be read in a batch
 	slog.InfoContext(ctx, "reading batch")
-	batch, err := action.batcher.ReadBatch()
+	_, err = action.batcher.ReadBatch()
 	if err != nil {
-		return fmt.Errorf("reading input batch: %w", err)
+		return fmt.Errorf("reading batch input: %w", err)
 	}
 
-	for _, cmd := range batch {
-		slog.InfoContext(ctx, "executing command", "command", cmd)
-		switch cmd.CommandType {
-		case comms.CmdCapabilities:
-			action.capabilities()
-		default:
-			return fmt.Errorf("unsupported command %s", cmd)
-		}
-	}
-
-	return nil
+	return fmt.Errorf("not implemented")
 }
