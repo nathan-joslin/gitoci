@@ -30,11 +30,13 @@ const (
 	// CmdListForPush       = "list for-push"
 )
 
+// Command represents a parsed command received from Git.
 type Command struct {
 	CommandType
 	Data []string
 }
 
+// BatchReadWriter supports both reading from and writing to Git in batches.
 type BatchReadWriter interface {
 	BatchReader
 	BatchWriter
@@ -129,9 +131,6 @@ func (b *batcher) parseCommand(line string) (Command, error) {
 }
 
 // ReadBatch reads lines from Git until an empty line is encountered.
-//
-// TODO: Not a fan of this func signature, we don't really need the pointers,
-// but I'm hesitant to return a third bool to mark completion of reading.
 func (b *batcher) ReadBatch() ([]Command, error) {
 	result := make([]Command, 0, 2)
 	for b.in.Scan() {
