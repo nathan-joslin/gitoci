@@ -1,8 +1,6 @@
 module github.com/act3-ai/gitoci
 
-go 1.23.0
-
-toolchain go1.24.4
+go 1.24.4
 
 require (
 	github.com/act3-ai/go-common v0.0.0-20250519210101-950b1bb97e92

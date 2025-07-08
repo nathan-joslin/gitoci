@@ -8,13 +8,11 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/spf13/cobra"
 
-	commands "github.com/act3-ai/go-common/pkg/cmd"
 	"github.com/act3-ai/go-common/pkg/logger"
 	"github.com/act3-ai/go-common/pkg/runner"
 	vv "github.com/act3-ai/go-common/pkg/version"
 
 	"github.com/act3-ai/gitoci/cmd/git-remote-oci/cli"
-	"github.com/act3-ai/gitoci/docs"
 )
 
 // Retrieves build info
@@ -35,15 +33,15 @@ func main() {
 
 	// Layout of embedded documentation to surface in the help command
 	// and generate in the gendocs command
-	embeddedDocs := docs.Embedded(root)
+	// embeddedDocs := docs.Embedded(root)
 
 	// Add common commands
-	root.AddCommand(
-		commands.NewVersionCmd(info),
-		commands.NewGenschemaCmd(docs.Schemas(), docs.SchemaAssociations),
-		commands.NewGendocsCmd(embeddedDocs),
-		commands.NewInfoCmd(embeddedDocs),
-	)
+	// root.AddCommand(
+	// 	commands.NewVersionCmd(info),
+	// 	commands.NewGenschemaCmd(docs.Schemas(), docs.SchemaAssociations),
+	// 	commands.NewGendocsCmd(embeddedDocs),
+	// 	commands.NewInfoCmd(embeddedDocs),
+	// )
 
 	// Store persistent pre run function to avoid overwriting it
 	persistentPreRun := root.PersistentPreRun
