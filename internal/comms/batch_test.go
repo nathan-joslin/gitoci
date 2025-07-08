@@ -23,13 +23,24 @@ func Test_batcher_Read(t *testing.T) {
 		want       Command
 		wantErr    bool
 	}{
-		// TODO: Add test cases.
-		{name: "Capabilities",
+		{
+			name: "Capabilities",
 			mockGitOut: []string{
 				"capabilities",
 			},
 			want: Command{
 				CommandType: CmdCapabilities,
+				Data:        []string{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Empty/Done",
+			mockGitOut: []string{
+				"\n",
+			},
+			want: Command{
+				CommandType: CmdEmpty,
 				Data:        []string{},
 			},
 			wantErr: false,
