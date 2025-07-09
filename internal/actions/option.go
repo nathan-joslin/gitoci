@@ -49,6 +49,7 @@ func (action *GitOCI) option(ctx context.Context, cmd comms.Command) error {
 	if err := action.batcher.Write(result); err != nil {
 		return fmt.Errorf("writing option response %s: %w", name, err)
 	}
+	// Git will print a warning to stderr if a newline is written
 	if err := action.batcher.Flush(false); err != nil {
 		return fmt.Errorf("flushing option writes: %w", err)
 	}
