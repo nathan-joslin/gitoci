@@ -8,16 +8,16 @@ import "fmt"
 type Capability = string
 
 const (
-	CapFoo Capability = "foo"
-	CapBar Capability = "bar"
+	CapOption Capability = "option"
+	CapFoo    Capability = "foo"
+	CapBar    Capability = "bar"
 	// CapPush   Capability = "push"
 	// CapFetch             = "fetch"
-	// CapOption            = "option"
 )
 
 func (action *GitOCI) capabilities() error {
 	// TODO: another method, we don't want to update this all the time...
-	capabilities := []Capability{CapFoo, CapBar}
+	capabilities := []Capability{CapOption, CapFoo, CapBar}
 	if err := action.batcher.WriteBatch(capabilities...); err != nil {
 		return fmt.Errorf("writing capabilities: %w", err)
 	}
