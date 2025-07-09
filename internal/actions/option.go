@@ -11,7 +11,6 @@ import (
 )
 
 type Option struct {
-	Verbosity int // TODO: this likely isnt needed, also progress is the option for Git's -v
 }
 
 // option handles and responds to the option subcommands.
@@ -75,11 +74,27 @@ func (action *GitOCI) handleOption(ctx context.Context, name string, value strin
 }
 
 // verbosity handles the 'option verbosity' command.
+//
+// https://git-scm.com/docs/gitremote-helpers#Documentation/gitremote-helpers.txt-optionverbosityn
 func (action *GitOCI) verbosity(value string) error {
-	var err error
-	action.Verbosity, err = strconv.Atoi(value)
+	val, err := strconv.Atoi(value)
 	if err != nil {
 		return fmt.Errorf("converting verbosity value to int: %w", err)
 	}
+
+	var lvl slog.Level
+	switch {
+	case val <= 0:
+		lvl = slog.LevelError
+	case val == 1:
+		lvl = slog.LevelWarn
+	case val == 2:
+		lvl = slog.LevelInfo
+	default:
+		lvl = slog.LevelDebug
+	}
+
+	slog.SetLogLoggerLevel(lvl)
+
 	return nil
 }
