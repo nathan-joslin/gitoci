@@ -3,12 +3,14 @@ package comms
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_batcher_Read(t *testing.T) {
+	ctx := context.Background()
 	// NOTE: this test setup is not safe to run tests in parallel.
 	// mock Git output, the input of batcher
 	gitOut := new(bytes.Buffer)
@@ -54,7 +56,7 @@ func Test_batcher_Read(t *testing.T) {
 					t.Fatalf("failed to mock Git output error =  %v", err)
 				}
 			}
-			got, err := batcher.Read()
+			got, err := batcher.Read(ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("batcher.Read() error = %v, wantErr %v", err, tt.wantErr)
 				return

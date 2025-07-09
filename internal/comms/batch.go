@@ -4,42 +4,11 @@ package comms
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"strings"
 )
-
-// Error types.
-var (
-	ErrUnsupportedCommand = errors.New("unsupported git-remote-helper command")
-)
-
-// CommandType is an implemented git-remote-helper command provided by Git.
-//
-// See https://git-scm.com/docs/gitremote-helpers#_commands.
-type CommandType = string
-
-const (
-	// Git conventions
-	CmdCapabilities    CommandType = "capabilities"
-	CmdOption          CommandType = "option"
-	CmdOptionVerbosity CommandType = "verbosity"
-	// CmdPush                 = "push"
-	// CmdFetch                = "fetch"
-	// CmdList                 = "list"
-	// CmdListForPush       = "for-push"
-
-	// not a Git convention, marks end of input
-	CmdEmpty CommandType = "empty"
-)
-
-// Command represents a parsed command received from Git.
-type Command struct {
-	CommandType
-	Data []string
-}
 
 // BatchReadWriter supports both reading from and writing to Git in batches.
 type BatchReadWriter interface {
@@ -81,8 +50,8 @@ type Writer interface {
 	// calls MAY need to be followed up with a flush.
 	Write(string) error
 
-	// Flush writes buffered Write(s) to Git, followed up with a blank line.
-	Flush() error
+	// Flush writes buffered Write(s) to Git, optionally followed up with a blank line.
+	Flush(bool) error
 }
 
 // batcher implements BatchReadWriter.
@@ -109,7 +78,9 @@ func (b *batcher) Read(ctx context.Context) (Command, error) {
 		// EOF
 		return Command{CommandType: CmdEmpty}, nil
 	default:
-		cmd, err := b.parseCommand(ctx, b.in.Text())
+		txt := b.in.Text()
+		slog.DebugContext(ctx, "read line from Git", "text", txt)
+		cmd, err := b.parseCommand(ctx, txt)
 		if err != nil {
 			return Command{}, fmt.Errorf("parsing Git command: %w", err)
 		}
@@ -145,7 +116,7 @@ func (b *batcher) WriteBatch(lines ...string) error {
 		}
 	}
 
-	return b.Flush()
+	return b.Flush(true)
 }
 
 // Write buffers a single line write to Git, must be followed up with a flush.
@@ -158,9 +129,11 @@ func (b *batcher) Write(line string) error {
 }
 
 // Flush writes buffered Write(s) to Git, followed up with a blank line.
-func (b *batcher) Flush() error {
-	if _, err := fmt.Fprintln(b.out); err != nil {
-		return fmt.Errorf("writing blank line to Git: %w", err)
+func (b *batcher) Flush(blankLine bool) error {
+	if blankLine {
+		if _, err := fmt.Fprintln(b.out); err != nil {
+			return fmt.Errorf("writing blank line to Git: %w", err)
+		}
 	}
 
 	if err := b.out.Flush(); err != nil {
@@ -173,40 +146,33 @@ func (b *batcher) Flush() error {
 // parseCommand reads a single line received from Git, turning it into a Command
 // easily identified by CommandType.
 func (b *batcher) parseCommand(ctx context.Context, line string) (Command, error) {
+	slog.DebugContext(ctx, "parsing command")
 	fields := strings.Fields(line)
 	if len(fields) < 1 {
-		return Command{}, fmt.Errorf("unexpected empty command line received from Git")
+		return Command{
+			CommandType: CmdEmpty,
+		}, nil
 	}
 
 	cmd := fields[0]
 	switch cmd {
-	case CmdCapabilities:
+	case string(CmdCapabilities):
 		return Command{
 			CommandType: CmdCapabilities,
-			Data:        nil,
 		}, nil
-	case CmdOption:
+	case string(CmdOption):
 		// TODO: we should try to not make options fatal, but we may have to
 		// make an exception for force (or others).
 		if len(fields) != 3 {
-			slog.ErrorContext(ctx, "insufficient number of arguments to option command", "got", fmt.Sprintf("%d", len(fields)), "want", "3")
-			return Command{}, nil
+			slog.ErrorContext(ctx, "invalid number of arguments to option command", "got", fmt.Sprintf("%d", len(fields)), "want", "3")
+			return Command{}, fmt.Errorf("invalid number of args to option command")
 		} else {
-			return b.parseOption(fields[1], fields[2])
+			return Command{
+				CommandType: CmdOption,
+				Data:        fields[1:],
+			}, nil
 		}
 	default:
 		return Command{}, fmt.Errorf("%w: %s", ErrUnsupportedCommand, cmd)
-	}
-}
-
-func (b *batcher) parseOption(subCmd, value string) (Command, error) {
-	switch subCmd {
-	case CmdOptionVerbosity:
-		return Command{}, nil
-	default:
-		if err := b.Write("unsupported"); err != nil {
-			return Command{}, fmt.Errorf("attempting to respond to unsupported option: %w", err)
-		}
-		return Command{}, nil
 	}
 }

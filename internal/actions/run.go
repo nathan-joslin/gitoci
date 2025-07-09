@@ -21,6 +21,8 @@ type GitOCI struct {
 	name   string // may have same value as address
 	addess string
 
+	Option
+
 	version string
 }
 
@@ -45,34 +47,40 @@ func (action *GitOCI) Run(ctx context.Context) error {
 	case cmd.CommandType != comms.CmdCapabilities:
 		return fmt.Errorf("unexpected first command %s, expected 'capabilities'", cmd.CommandType)
 	default:
-		if err := action.capabilities(); err != nil {
-			return fmt.Errorf("responding to capabilities command: %w", err)
+		slog.InfoContext(ctx, "writing capabilities")
+		if err := action.capabilities(ctx); err != nil {
+			return err
 		}
 	}
 
-	cmds, err := action.batcher.ReadBatch(ctx)
-	if err != nil {
-		return fmt.Errorf("reading bach input: %w", err)
-	}
-
-	for _, cmd := range cmds {
+	var done bool
+	for !done {
+		cmd, err := action.batcher.Read(ctx)
+		if err != nil {
+			return fmt.Errorf("reading next line: %w", err)
+		}
+		slog.InfoContext(ctx, "read command from Git", "command", cmd.CommandType, "data", fmt.Sprintf("%v", cmd.Data))
 		switch cmd.CommandType {
 		case comms.CmdEmpty:
-			// TODO: revise: some commands aren't exactly terminated by the blank line
-			// but we can still predict the end, i.e. the rest of the stream is all that's left
-			slog.InfoContext(ctx, "batch complete")
-			return nil
-		default:
-			return fmt.Errorf("")
+			done = true
+		case comms.CmdCapabilities:
+			// Git shouldn't need to do this again, but let's be safe
+			if err := action.capabilities(ctx); err != nil {
+				return err
+			}
+		case comms.CmdOption:
+			if err := action.option(ctx, cmd); err != nil {
+				return err
+			}
 		}
 	}
 
-	// TODO: Next command is 'list', can be read in a batch
-	slog.InfoContext(ctx, "reading batch")
-	_, err = action.batcher.ReadBatch(ctx)
-	if err != nil {
-		return fmt.Errorf("reading batch input: %w", err)
-	}
+	// // TODO: Next command is 'list', can be read in a batch
+	// slog.InfoContext(ctx, "reading batch")
+	// _, err = action.batcher.ReadBatch(ctx)
+	// if err != nil {
+	// 	return fmt.Errorf("reading batch input: %w", err)
+	// }
 
 	return fmt.Errorf("not implemented")
 }
