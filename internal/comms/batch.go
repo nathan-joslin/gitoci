@@ -3,38 +3,11 @@ package comms
 
 import (
 	"bufio"
-	"errors"
+	"context"
 	"fmt"
 	"io"
-	"strings"
+	"log/slog"
 )
-
-// Error types.
-var (
-	ErrUnsupportedCommand = errors.New("unsupported git-remote-helper command")
-)
-
-// CommandType is an implemented git-remote-helper command provided by Git.
-//
-// See https://git-scm.com/docs/gitremote-helpers#_commands.
-type CommandType = string
-
-const (
-	// not a Git convention, marks end of input
-	CmdEmpty        CommandType = "empty"
-	CmdCapabilities CommandType = "capabilities"
-	// CmdPush                 = "push"
-	// CmdFetch                = "fetch"
-	// CmdOption               = "option"
-	// CmdList                 = "list"
-	// CmdListForPush       = "list for-push"
-)
-
-// Command represents a parsed command received from Git.
-type Command struct {
-	CommandType
-	Data []string
-}
 
 // BatchReadWriter supports both reading from and writing to Git in batches.
 type BatchReadWriter interface {
@@ -48,7 +21,7 @@ type BatchReader interface {
 	Reader
 
 	// ReadBatch reads lines from Git until an empty line is encountered.
-	ReadBatch() ([]Command, error)
+	ReadBatch(context.Context) ([]Command, error)
 }
 
 type BatchWriter interface {
@@ -67,7 +40,7 @@ type BatchWriter interface {
 // Reader reads a single command from Git.
 type Reader interface {
 	// Read reads a single line from Git.
-	Read() (Command, error)
+	Read(context.Context) (Command, error)
 }
 
 // Writer is used to Write single lines to Git, completed with a Flush.
@@ -76,8 +49,8 @@ type Writer interface {
 	// calls MAY need to be followed up with a flush.
 	Write(string) error
 
-	// Flush writes buffered Write(s) to Git, followed up with a blank line.
-	Flush() error
+	// Flush writes buffered Write(s) to Git, optionally followed up with a blank line.
+	Flush(bool) error
 }
 
 // batcher implements BatchReadWriter.
@@ -95,7 +68,7 @@ func NewBatcher(in io.Reader, out io.Writer) BatchReadWriter {
 }
 
 // Read parses a single command received by Git.
-func (b *batcher) Read() (Command, error) {
+func (b *batcher) Read(ctx context.Context) (Command, error) {
 	ok := b.in.Scan()
 	switch {
 	case !ok && b.in.Err() != nil:
@@ -104,7 +77,9 @@ func (b *batcher) Read() (Command, error) {
 		// EOF
 		return Command{CommandType: CmdEmpty}, nil
 	default:
-		cmd, err := b.parseCommand(b.in.Text())
+		txt := b.in.Text()
+		slog.DebugContext(ctx, "read line from Git", "text", txt)
+		cmd, err := ParseCommand(ctx, txt)
 		if err != nil {
 			return Command{}, fmt.Errorf("parsing Git command: %w", err)
 		}
@@ -112,33 +87,15 @@ func (b *batcher) Read() (Command, error) {
 	}
 }
 
-func (b *batcher) parseCommand(line string) (Command, error) {
-	fields := strings.Fields(line)
-	if len(fields) < 1 {
-		return Command{}, fmt.Errorf("unexpected empty command line received from Git")
-	}
-
-	cmd := fields[0]
-	switch cmd {
-	case CmdCapabilities:
-		return Command{
-			CommandType: CmdCapabilities,
-			Data:        nil,
-		}, nil
-	default:
-		return Command{}, fmt.Errorf("%w: %s", ErrUnsupportedCommand, cmd)
-	}
-}
-
 // ReadBatch reads lines from Git until an empty line is encountered.
-func (b *batcher) ReadBatch() ([]Command, error) {
+func (b *batcher) ReadBatch(ctx context.Context) ([]Command, error) {
 	result := make([]Command, 0, 2)
 	for b.in.Scan() {
 		line := b.in.Text()
 		if line == "" {
 			break
 		}
-		cmd, err := b.parseCommand(line)
+		cmd, err := ParseCommand(ctx, line)
 		if err != nil {
 			return nil, fmt.Errorf("parsing Git command: %w", err)
 		}
@@ -158,7 +115,7 @@ func (b *batcher) WriteBatch(lines ...string) error {
 		}
 	}
 
-	return b.Flush()
+	return b.Flush(true)
 }
 
 // Write buffers a single line write to Git, must be followed up with a flush.
@@ -171,9 +128,11 @@ func (b *batcher) Write(line string) error {
 }
 
 // Flush writes buffered Write(s) to Git, followed up with a blank line.
-func (b *batcher) Flush() error {
-	if _, err := fmt.Fprintln(b.out); err != nil {
-		return fmt.Errorf("writing blank line to Git: %w", err)
+func (b *batcher) Flush(blankLine bool) error {
+	if blankLine {
+		if _, err := fmt.Fprintln(b.out); err != nil {
+			return fmt.Errorf("writing blank line to Git: %w", err)
+		}
 	}
 
 	if err := b.out.Flush(); err != nil {

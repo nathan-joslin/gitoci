@@ -1,23 +1,27 @@
 package actions
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"log/slog"
+)
 
 // Capability defines a git-remote-helper capability.
 //
 // See https://git-scm.com/docs/gitremote-helpers#_capabilities.
 type Capability = string
 
+// Capabilities with a '*' prefix marks them as mandatory.
 const (
-	CapFoo Capability = "foo"
-	CapBar Capability = "bar"
+	CapOption Capability = "option"
 	// CapPush   Capability = "push"
 	// CapFetch             = "fetch"
-	// CapOption            = "option"
 )
 
-func (action *GitOCI) capabilities() error {
+func (action *GitOCI) capabilities(ctx context.Context) error {
 	// TODO: another method, we don't want to update this all the time...
-	capabilities := []Capability{CapFoo, CapBar}
+	capabilities := []Capability{CapOption}
+	slog.DebugContext(ctx, "writing supported capabilities", "capabilities", fmt.Sprintf("%v", capabilities))
 	if err := action.batcher.WriteBatch(capabilities...); err != nil {
 		return fmt.Errorf("writing capabilities: %w", err)
 	}
