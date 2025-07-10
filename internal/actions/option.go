@@ -13,7 +13,7 @@ import (
 type Option struct {
 }
 
-// option handles and responds to the option subcommands.
+// option handles and responds to the `option` subcommands.
 func (action *GitOCI) option(ctx context.Context, cmd comms.Command) error {
 	const (
 		ok          = "ok"
@@ -56,7 +56,7 @@ func (action *GitOCI) option(ctx context.Context, cmd comms.Command) error {
 	return nil
 }
 
-// handleOption fulfills and option command if supported.
+// handleOption fulfills and `option` command if supported.
 func (action *GitOCI) handleOption(ctx context.Context, name string, value string) error {
 	if !comms.SupportedOption(name) {
 		return errors.Join(comms.ErrUnsupportedCommand, fmt.Errorf("unsupported option %s", name))
@@ -74,7 +74,7 @@ func (action *GitOCI) handleOption(ctx context.Context, name string, value strin
 	return nil
 }
 
-// verbosity handles the 'option verbosity' command.
+// verbosity handles the `option verbosity` command.
 //
 // https://git-scm.com/docs/gitremote-helpers#Documentation/gitremote-helpers.txt-optionverbosityn
 func (action *GitOCI) verbosity(value string) error {

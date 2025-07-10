@@ -21,10 +21,10 @@ type CommandType string
 const (
 	// Git conventions
 	CmdCapabilities CommandType = "capabilities"
+	CmdList         CommandType = "list"
 
 	// CmdPush                 = "push"
 	// CmdFetch                = "fetch"
-	// CmdList                 = "list"
 	// CmdListForPush       = "for-push"
 
 	// not a Git convention, marks end of input
@@ -78,6 +78,11 @@ func ParseCommand(ctx context.Context, line string) (Command, error) {
 				Data:        fields[1:],
 			}, nil
 		}
+	case CmdList:
+		// TODO: list for-push will need to be checked here
+		return Command{
+			CommandType: CmdList,
+		}, nil
 	default:
 		return Command{}, fmt.Errorf("%w: %s", ErrUnsupportedCommand, cmd)
 	}
