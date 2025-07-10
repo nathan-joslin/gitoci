@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log/slog"
 
 	"github.com/act3-ai/gitoci/internal/cmd"
 )
@@ -47,7 +46,6 @@ func (action *GitOCI) Run(ctx context.Context) error {
 	case c.Cmd != cmd.Capabilities:
 		return fmt.Errorf("unexpected first command %s, expected 'capabilities'", c.Cmd)
 	default:
-		slog.InfoContext(ctx, "writing capabilities")
 		if err := action.capabilities(ctx); err != nil {
 			return err
 		}
@@ -59,7 +57,7 @@ func (action *GitOCI) Run(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("reading next line: %w", err)
 		}
-		slog.InfoContext(ctx, "read command from Git", "command", c.Cmd, "data", fmt.Sprintf("%v", c.Data))
+
 		switch c.Cmd {
 		case cmd.Empty:
 			done = true

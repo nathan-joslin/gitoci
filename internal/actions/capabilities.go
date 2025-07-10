@@ -19,7 +19,6 @@ const (
 )
 
 func (action *GitOCI) capabilities(ctx context.Context) error {
-	// TODO: another method, we don't want to update this all the time...
 	capabilities := []Capability{CapOption}
 	slog.DebugContext(ctx, "writing supported capabilities", "capabilities", fmt.Sprintf("%v", capabilities))
 	if err := action.batcher.WriteBatch(capabilities...); err != nil {

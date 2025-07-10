@@ -70,7 +70,8 @@ func SupportedCommand(name Type) bool {
 // parse parses a single line received from Git, turning it into a cmd.Git
 // easily identified by Type.
 func parse(ctx context.Context, line string) (Git, error) {
-	slog.DebugContext(ctx, "parsing command")
+	slog.DebugContext(ctx, "parsing command from Git", "line", line)
+
 	fields := strings.Fields(line)
 	if len(fields) < 1 {
 		return Git{
