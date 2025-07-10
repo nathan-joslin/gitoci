@@ -10,13 +10,6 @@ import (
 
 func Test_batcher_Read(t *testing.T) {
 	ctx := context.Background()
-	// NOTE: this test setup is not safe to run tests in parallel.
-	// mock Git output, the input of batcher
-	gitOut := new(bytes.Buffer)
-	// mock Git input, the output of batcher
-	gitIn := new(bytes.Buffer)
-
-	batcher := NewBatcher(gitOut, gitIn)
 
 	tests := []struct {
 		name       string
@@ -30,8 +23,21 @@ func Test_batcher_Read(t *testing.T) {
 				"capabilities",
 			},
 			want: Git{
-				Cmd:  Capabilities,
-				Data: []string{},
+				Cmd:    Capabilities,
+				SubCmd: "",
+				Data:   []string{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Option Verbosity",
+			mockGitOut: []string{
+				"option verbosity 4",
+			},
+			want: Git{
+				Cmd:    Option,
+				SubCmd: OptionVerbosity,
+				Data:   []string{"4"},
 			},
 			wantErr: false,
 		},
@@ -41,14 +47,20 @@ func Test_batcher_Read(t *testing.T) {
 				"\n",
 			},
 			want: Git{
-				Cmd:  Empty,
-				Data: []string{},
+				Cmd:    Empty,
+				SubCmd: "",
+				Data:   []string{},
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			gitOut := new(bytes.Buffer)
+			// mock Git input, the output of batcher
+			gitIn := new(bytes.Buffer)
+
+			batcher := NewBatcher(gitOut, gitIn)
 			for _, line := range tt.mockGitOut {
 				_, err := gitOut.WriteString(line)
 				if err != nil {
@@ -61,6 +73,7 @@ func Test_batcher_Read(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tt.want.Cmd, got.Cmd)
+			assert.Equal(t, tt.want.SubCmd, got.SubCmd)
 			assert.ElementsMatch(t, tt.want.Data, got.Data)
 		})
 	}
