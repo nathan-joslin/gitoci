@@ -1,5 +1,5 @@
-// Package comms implements utilities for communicating with Git, i.e. reading from and writing to Git.
-package comms
+// Package cmd implements utilities for interpreting and responding to commands sent by Git.
+package cmd
 
 import (
 	"bufio"
@@ -21,7 +21,7 @@ type BatchReader interface {
 	Reader
 
 	// ReadBatch reads lines from Git until an empty line is encountered.
-	ReadBatch(context.Context) ([]Command, error)
+	ReadBatch(context.Context) ([]Git, error)
 }
 
 type BatchWriter interface {
@@ -40,7 +40,7 @@ type BatchWriter interface {
 // Reader reads a single command from Git.
 type Reader interface {
 	// Read reads a single line from Git.
-	Read(context.Context) (Command, error)
+	Read(context.Context) (Git, error)
 }
 
 // Writer is used to Write single lines to Git, completed with a Flush.
@@ -68,34 +68,34 @@ func NewBatcher(in io.Reader, out io.Writer) BatchReadWriter {
 }
 
 // Read parses a single command received by Git.
-func (b *batcher) Read(ctx context.Context) (Command, error) {
+func (b *batcher) Read(ctx context.Context) (Git, error) {
 	ok := b.in.Scan()
 	switch {
 	case !ok && b.in.Err() != nil:
-		return Command{}, fmt.Errorf("reading single command from Git: %w", b.in.Err())
+		return Git{}, fmt.Errorf("reading single command from Git: %w", b.in.Err())
 	case !ok:
 		// EOF
-		return Command{CommandType: CmdEmpty}, nil
+		return Git{Cmd: Empty}, nil
 	default:
 		txt := b.in.Text()
 		slog.DebugContext(ctx, "read line from Git", "text", txt)
-		cmd, err := ParseCommand(ctx, txt)
+		cmd, err := Parse(ctx, txt)
 		if err != nil {
-			return Command{}, fmt.Errorf("parsing Git command: %w", err)
+			return Git{}, fmt.Errorf("parsing Git command: %w", err)
 		}
 		return cmd, nil
 	}
 }
 
 // ReadBatch reads lines from Git until an empty line is encountered.
-func (b *batcher) ReadBatch(ctx context.Context) ([]Command, error) {
-	result := make([]Command, 0, 2)
+func (b *batcher) ReadBatch(ctx context.Context) ([]Git, error) {
+	result := make([]Git, 0, 2)
 	for b.in.Scan() {
 		line := b.in.Text()
 		if line == "" {
 			break
 		}
-		cmd, err := ParseCommand(ctx, line)
+		cmd, err := Parse(ctx, line)
 		if err != nil {
 			return nil, fmt.Errorf("parsing Git command: %w", err)
 		}

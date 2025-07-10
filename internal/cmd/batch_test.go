@@ -1,5 +1,4 @@
-// Package comms implements utilities for communicating with Git, i.e. reading from and writing to Git.
-package comms
+package cmd
 
 import (
 	"bytes"
@@ -22,7 +21,7 @@ func Test_batcher_Read(t *testing.T) {
 	tests := []struct {
 		name       string
 		mockGitOut []string
-		want       Command
+		want       Git
 		wantErr    bool
 	}{
 		{
@@ -30,9 +29,9 @@ func Test_batcher_Read(t *testing.T) {
 			mockGitOut: []string{
 				"capabilities",
 			},
-			want: Command{
-				CommandType: CmdCapabilities,
-				Data:        []string{},
+			want: Git{
+				Cmd:  Capabilities,
+				Data: []string{},
 			},
 			wantErr: false,
 		},
@@ -41,9 +40,9 @@ func Test_batcher_Read(t *testing.T) {
 			mockGitOut: []string{
 				"\n",
 			},
-			want: Command{
-				CommandType: CmdEmpty,
-				Data:        []string{},
+			want: Git{
+				Cmd:  Empty,
+				Data: []string{},
 			},
 			wantErr: false,
 		},
@@ -61,7 +60,7 @@ func Test_batcher_Read(t *testing.T) {
 				t.Errorf("batcher.Read() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			assert.Equal(t, tt.want.CommandType, got.CommandType)
+			assert.Equal(t, tt.want.Cmd, got.Cmd)
 			assert.ElementsMatch(t, tt.want.Data, got.Data)
 		})
 	}

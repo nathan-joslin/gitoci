@@ -7,47 +7,38 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/act3-ai/gitoci/internal/comms"
+	"github.com/act3-ai/gitoci/internal/cmd"
 )
 
 type Option struct {
 }
 
 // option handles and responds to the option subcommands.
-func (action *GitOCI) option(ctx context.Context, cmd comms.Command) error {
+func (action *GitOCI) option(ctx context.Context, c cmd.Git) error {
 	const (
 		ok          = "ok"
 		unsupported = "unsupported"
 	)
 
-	// sanity
-	if cmd.CommandType == "" {
-		return fmt.Errorf("received empty option command")
-	}
-	if len(cmd.Data) != 2 {
-		return fmt.Errorf("received invalid option value: %v", cmd.Data)
-	}
-
-	name := cmd.Data[0]
-	value := cmd.Data[1]
+	value := c.Data[0]
 
 	// https://git-scm.com/docs/gitremote-helpers#Documentation/gitremote-helpers.txt-optionnamevalue
 	var result string
-	err := action.handleOption(ctx, name, value)
+	err := action.handleOption(ctx, c.SubCmd, value)
 	switch {
-	case errors.Is(err, comms.ErrUnsupportedCommand):
-		slog.DebugContext(ctx, "received unsupported option command", "command", name)
+	case errors.Is(err, cmd.ErrUnsupportedCommand):
+		slog.DebugContext(ctx, "received unsupported option command", "command", c.SubCmd)
 		result = unsupported
 	case err != nil:
-		slog.ErrorContext(ctx, "failed to handle option command", "command", name)
+		slog.ErrorContext(ctx, "failed to handle option command", "command", c.SubCmd)
 		result = err.Error()
 	default:
-		slog.DebugContext(ctx, "successfully handled option command", "command", name)
+		slog.DebugContext(ctx, "successfully handled option command", "command", c.SubCmd)
 		result = ok
 	}
 
 	if err := action.batcher.Write(result); err != nil {
-		return fmt.Errorf("writing option response %s: %w", name, err)
+		return fmt.Errorf("writing option response %s: %w", c.SubCmd, err)
 	}
 	// Git will print a warning to stderr if a newline is written
 	if err := action.batcher.Flush(false); err != nil {
@@ -57,18 +48,17 @@ func (action *GitOCI) option(ctx context.Context, cmd comms.Command) error {
 }
 
 // handleOption fulfills and option command if supported.
-func (action *GitOCI) handleOption(ctx context.Context, name string, value string) error {
-	if !comms.SupportedOption(name) {
-		return errors.Join(comms.ErrUnsupportedCommand, fmt.Errorf("unsupported option %s", name))
+func (action *GitOCI) handleOption(ctx context.Context, name cmd.Type, value string) error {
+	if !cmd.SupportedOption(name) {
+		return errors.Join(cmd.ErrUnsupportedCommand, fmt.Errorf("unsupported option %s", name))
 	}
 
-	cmd := comms.CommandType(name)
-	switch cmd {
-	case comms.CmdOptionVerbosity:
+	switch name {
+	case cmd.OptionVerbosity:
 		return action.verbosity(value)
 	default:
 		// sanity, should never happen
-		slog.DebugContext(ctx, "handleOption not able to fulfill  supposedly supported option command", "command", cmd)
+		slog.DebugContext(ctx, "handleOption not able to handle supposedly supported option command", "command", name)
 	}
 
 	return nil

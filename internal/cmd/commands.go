@@ -1,0 +1,110 @@
+package cmd
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"slices"
+	"strings"
+)
+
+// Error types.
+var (
+	ErrUnsupportedCommand = errors.New("unsupported git-remote-helper command")
+)
+
+// Type is an implemented git-remote-helper command provided by Git.
+//
+// See https://git-scm.com/docs/gitremote-helpers#_commands.
+type Type string
+
+// https://git-scm.com/docs/gitremote-helpers#_commands
+const (
+	// Git conventions
+	Capabilities Type = "capabilities"
+	// Push                 = "push"
+	// Fetch                = "fetch"
+	// List                 = "list"
+	// ListForPush       = "for-push"
+
+	// not a Git convention, marks end of input
+	Empty Type = "empty"
+)
+
+var Commands = []Type{
+	Capabilities,
+	Empty,
+}
+
+// https://git-scm.com/docs/gitremote-helpers#_options
+const (
+	Option          Type = "option"
+	OptionVerbosity Type = "verbosity"
+)
+
+var Options = []Type{
+	Option,
+	OptionVerbosity,
+}
+
+// Git represents a parsed command received from Git. It may include a
+// subcommand
+type Git struct {
+	Cmd    Type
+	SubCmd Type
+	Data   []string
+}
+
+// SupportedOption returns true if an option is supported.
+func SupportedOption(name Type) bool {
+	// `option` by itself is a capability, we're really checking for subcommands.
+	return slices.Contains(Options[1:], name)
+}
+
+// Parse parses a single line received from Git, turning it into a cmd.Git
+// easily identified by Type.
+func Parse(ctx context.Context, line string) (Git, error) {
+	slog.DebugContext(ctx, "parsing command")
+	fields := strings.Fields(line)
+	if len(fields) < 1 {
+		return Git{
+			Cmd: Empty,
+		}, nil
+	}
+
+	cmd := Type(fields[0])
+	switch cmd {
+	case Capabilities:
+		return Git{
+			Cmd: Capabilities,
+		}, nil
+	case Option:
+		if err := validOption(ctx, fields...); err != nil {
+			return Git{}, err
+		}
+
+		return Git{
+			Cmd:    Option,
+			SubCmd: Type(fields[1]),
+			Data:   fields[2:],
+		}, nil
+	default:
+		return Git{}, fmt.Errorf("%w: %s", ErrUnsupportedCommand, cmd)
+	}
+}
+
+// validOption ensures an option is properly formed. See SupportedOption() to
+// evaluate if an option is supported.
+func validOption(ctx context.Context, fields ...string) error {
+	// TODO: ideally we return a bool
+	// we should try to not make options fatal, but we may have to
+	// make an exception for force (or others).
+	if len(fields) != 3 {
+		slog.ErrorContext(ctx, "invalid number of arguments to option command",
+			"got", fmt.Sprintf("%d", len(fields)),
+			"want", "3")
+		return fmt.Errorf("invalid number of args to option command")
+	}
+	return nil
+}
