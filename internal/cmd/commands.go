@@ -52,7 +52,7 @@ var Options = []Type{
 // subcommand
 type Git struct {
 	Cmd    Type
-	SubCmd Type
+	SubCmd Type // not all commands include a subcommand
 	Data   []string
 }
 
@@ -62,9 +62,14 @@ func SupportedOption(name Type) bool {
 	return slices.Contains(Options[1:], name)
 }
 
-// Parse parses a single line received from Git, turning it into a cmd.Git
+// SupportedCommand returns true if a Command is supported.
+func SupportedCommand(name Type) bool {
+	return slices.Contains(Commands, name)
+}
+
+// parse parses a single line received from Git, turning it into a cmd.Git
 // easily identified by Type.
-func Parse(ctx context.Context, line string) (Git, error) {
+func parse(ctx context.Context, line string) (Git, error) {
 	slog.DebugContext(ctx, "parsing command")
 	fields := strings.Fields(line)
 	if len(fields) < 1 {

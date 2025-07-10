@@ -79,7 +79,7 @@ func (b *batcher) Read(ctx context.Context) (Git, error) {
 	default:
 		txt := b.in.Text()
 		slog.DebugContext(ctx, "read line from Git", "text", txt)
-		cmd, err := Parse(ctx, txt)
+		cmd, err := parse(ctx, txt)
 		if err != nil {
 			return Git{}, fmt.Errorf("parsing Git command: %w", err)
 		}
@@ -95,7 +95,7 @@ func (b *batcher) ReadBatch(ctx context.Context) ([]Git, error) {
 		if line == "" {
 			break
 		}
-		cmd, err := Parse(ctx, line)
+		cmd, err := parse(ctx, line)
 		if err != nil {
 			return nil, fmt.Errorf("parsing Git command: %w", err)
 		}
